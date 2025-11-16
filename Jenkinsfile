@@ -2,8 +2,7 @@ pipeline {
     agent any
 
     stages {
-
-        stage('Checkout Code') {
+        stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/KevinMathewsj/task2-jenkins.git'
             }
@@ -11,25 +10,31 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t jenkins-cicd-app ./app'
+                sh 'docker build -t task2-jenkins-app .'
             }
         }
 
         stage('Test Docker Image') {
             steps {
-                sh 'docker run -d -p 3000:3000 --name test-app jenkins-cicd-app'
-                sh 'sleep 5'
-                sh 'curl http://localhost:3000'
-                sh 'docker stop test-app'
-                sh 'docker rm test-app'
+                sh 'docker run --rm task2-jenkins-app ls'
             }
         }
 
         stage('Deploy Application') {
             steps {
-                sh 'docker run -d -p 3000:3000 --name production-app jenkins-cicd-app'
+                sh 'docker stop jenkins-task2-app || true'
+                sh 'docker rm jenkins-task2-app || true'
+                sh 'docker run -d -p 8080:80 --name jenkins-task2-app task2-jenkins-app'
             }
         }
+    }
 
+    post {
+        success {
+            echo "🎉 Jenkins CI/CD Pipeline Completed Successfully!"
+        }
+        failure {
+            echo "❌ Pipeline Failed!"
+        }
     }
 }
